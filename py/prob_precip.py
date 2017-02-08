@@ -94,5 +94,5 @@ if pe == 0:
 
 # plot data
 if args.plot: 
-    plotProb(out, 'prob precip')
+    plotProb(lats, lons, out, 'prob precip')
 
