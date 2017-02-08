@@ -4,6 +4,8 @@ from mpi4py import MPI
 import argparse
 import sys
 
+iris.FUTURE.netcdf_promote = True
+
 parser = argparse.ArgumentParser(description='Compute the probability of precipitation')
 parser.add_argument('--file', type=str, dest='file', 
                     default='total_precip.nc',
@@ -44,16 +46,24 @@ op.addStencilBranch((+1, -1), 1.0/9.0)
 op.addStencilBranch(( 0,  0), 1.0/9.0)
 
 # apply 
-out = op.apply(cube.data)
+print('applying stencil..')
+out = op.apply(cube.data[0,...])
+print('done.')
 
 # plot
 if args.plot:
     from matplotlib import pylab
     coords = cube.coords()
-    yy = cube.coords[0].points
-    xx = cube.coords[1].points
+    #print(coords)
+    #yy = coords[0].points
+    #xx = coords[1].points
+    #print(cube.data.shape)
+    #print(yy.shape)
     pylab.figure(1)
-    pylab.pcolor(xx, yy, cube.data)
+    data = cube.data[0,...]
+    print(data.shape)
+    pylab.pcolor(data)
     pylab.figure(2)
-    pylab.pcolor(xx, yy, out)
+    pylab.pcolor(out)
+    pylab.show()
 
