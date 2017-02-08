@@ -56,9 +56,13 @@ op.addStencilBranch(( 0,  0), 1.0/9.0)
 # apply 
 print('applying stencil..')
 precip = numpy.array(cube.data[0,...] > args.threshold, numpy.float64)
-for i in range(10):
+for i in range(args.niter):
     out = op.apply(precip)
-    precip = out
+    precip[...] = out
+    # gather
+    checksum = out.sum()
+    checksum0 = numpy.sum(MPI.COMM_WORLD.gather(checksum, 0))
+    if pe == 0: print('i = {} checksum: {}'.format(i, checksum0))
 print('done.')
 
 # plot
