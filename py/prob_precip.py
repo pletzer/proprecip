@@ -5,6 +5,8 @@ from mpi4py import MPI
 import argparse
 import sys
 import netCDF4
+from matplotlib import pylab
+from mpl_toolkits.basemap import Basemap
 
 iris.FUTURE.netcdf_promote = True
 
@@ -45,15 +47,32 @@ jbeg, jend = slab[1].start, slab[1].stop
 
 # average the data 
 op = pnumpy.StencilOperator(dc, periodic=(False, False))
-op.addStencilBranch((+1,  0), 1.0/9.0)
-op.addStencilBranch((+1, +1), 1.0/9.0)
-op.addStencilBranch(( 0, +1), 1.0/9.0)
-op.addStencilBranch((-1, +1), 1.0/9.0)
-op.addStencilBranch((-1,  0), 1.0/9.0)
-op.addStencilBranch((-1, -1), 1.0/9.0)
-op.addStencilBranch(( 0, -1), 1.0/9.0)
-op.addStencilBranch((+1, -1), 1.0/9.0)
-op.addStencilBranch(( 0,  0), 1.0/9.0)
+op.addStencilBranch((+1,  0), 1.0/4.0)
+op.addStencilBranch(( 0, +1), 1.0/4.0)
+op.addStencilBranch((-1,  0), 1.0/4.0)
+op.addStencilBranch(( 0, -1), 1.0/4.0)
+
+"""
+if args.plot:
+    # plot entire data
+    f = pylab.figure()
+    p = pylab.pcolor(lons, lats, cube.data)
+    pylab.title('precip kg/m^2')
+    f.savefig('precip.png')
+"""
+
+lats = lats[ibeg:iend, jbeg:jend]
+lons = lons[ibeg:iend, jbeg:jend]
+
+def plotProb(data, title, index):
+    # plot the data
+    f = pylab.figure()
+    p = pylab.pcolor(lons, lats, data, vmin=0, vmax=1)
+    pylab.colorbar(p)
+    # add the basemap
+    mp = Basemap()
+    mp.drawcoastlines()
+    f.savefig('prob_precip_pe{}_index{}.png'.format(pe, index))
 
 # apply 
 print('applying stencil..')
@@ -65,11 +84,13 @@ for i in range(args.niter):
     checksum = out.sum()
     checksum0 = numpy.sum(MPI.COMM_WORLD.gather(checksum, 0))
     if pe == 0: print('i = {} checksum: {}'.format(i, checksum0))
+    # plot data
+    if args.plot: plotProb(out, 'prob precip i = {}'.format(i), i)
 print('done.')
 
 # plot
 if args.plot:
-    from matplotlib import pylab
+    
 
     coords = cube.coords()
 
