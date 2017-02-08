@@ -6,7 +6,7 @@ import argparse
 import sys
 import netCDF4
 from matplotlib import pylab
-from mpl_toolkits.basemap import Basemap
+import time
 
 iris.FUTURE.netcdf_promote = True
 
@@ -65,6 +65,8 @@ lats = lats[ibeg:iend, jbeg:jend]
 lons = lons[ibeg:iend, jbeg:jend]
 
 def plotProb(data, title, index):
+    from mpl_toolkits.basemap import Basemap
+
     # plot the data
     f = pylab.figure()
     p = pylab.pcolor(lons, lats, data, vmin=0, vmax=1)
@@ -75,39 +77,20 @@ def plotProb(data, title, index):
     f.savefig('prob_precip_pe{}_index{}.png'.format(pe, index))
 
 # apply 
-print('applying stencil..')
+if pe == 0: print('applying stencil..')
 precip = numpy.array(cube.data[0, ibeg:iend, jbeg:jend] > args.threshold, numpy.float64)
 for i in range(args.niter):
+    t0 = time.time()
     out = op.apply(precip)
     precip[...] = out
     # compute global checksums
     checksum = out.sum()
     checksum0 = numpy.sum(MPI.COMM_WORLD.gather(checksum, 0))
-    if pe == 0: print('i = {} checksum: {}'.format(i, checksum0))
+    t1 = time.time()
+    if pe == 0: 
+        print('i = {} checksum: {} time: {}'.format(i, checksum0, t1 - t0))
     # plot data
-    if args.plot: plotProb(out, 'prob precip i = {}'.format(i), i)
-print('done.')
-
-# plot
-if args.plot:
-    
-
-    coords = cube.coords()
-
-    print(lats.shape)
-    print(lons.shape)
-    print(out.shape)
-
-    pylab.figure(1)
-    data = cube.data[0,...]
-    print(data.shape)   
-    p1 = pylab.pcolor(lons, lats, data)
-    pylab.title('total_precip kg/m^2')
-    pylab.colorbar(p1)
-
-    pylab.figure(2)
-    p2 = pylab.pcolor(lons, lats, out, vmin=0, vmax=1)
-    pylab.colorbar(p2)
-    pylab.title('probability')
-    pylab.show()
+    if args.plot: 
+        plotProb(out, 'prob precip i = {}'.format(i), i)
+if pe == 0: print('done.')
 
