@@ -40,6 +40,8 @@ if not dc.getDecomp():
 ndims = dc.getNumDims()
 # local start/end grid indices
 slab = dc.getSlab(pe)
+ibeg, iend = slab[0].start, slab[0].stop
+jbeg, jend = slab[1].start, slab[1].stop
 
 # average the data 
 op = pnumpy.StencilOperator(dc, periodic=(False, False))
@@ -55,11 +57,11 @@ op.addStencilBranch(( 0,  0), 1.0/9.0)
 
 # apply 
 print('applying stencil..')
-precip = numpy.array(cube.data[0,...] > args.threshold, numpy.float64)
+precip = numpy.array(cube.data[0, ibeg:iend, jbeg:jend] > args.threshold, numpy.float64)
 for i in range(args.niter):
     out = op.apply(precip)
     precip[...] = out
-    # gather
+    # compute global checksums
     checksum = out.sum()
     checksum0 = numpy.sum(MPI.COMM_WORLD.gather(checksum, 0))
     if pe == 0: print('i = {} checksum: {}'.format(i, checksum0))
