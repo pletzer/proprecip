@@ -61,6 +61,11 @@ if args.plot:
     f.savefig('precip.png')
 """
 
+print(lats.min())
+print(lats.max())
+print(lons.min())
+print(lons.max())
+
 lats = lats[ibeg:iend, jbeg:jend]
 lons = lons[ibeg:iend, jbeg:jend]
 
@@ -72,8 +77,8 @@ def plotProb(data, title, index):
     p = pylab.pcolor(lons, lats, data, vmin=0, vmax=1)
     pylab.colorbar(p)
     # add the basemap
-    mp = Basemap()
-    mp.drawcoastlines()
+    mp = Basemap(llcrnrlon=160, urcrnrlon=185, llcrnrlat=-49, urcrnrlat=-30, resolution='h')
+    mp.drawcoastlines(color='w')
     f.savefig('prob_precip_pe{}_index{}.png'.format(pe, index))
 
 # apply 
