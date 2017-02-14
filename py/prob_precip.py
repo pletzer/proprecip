@@ -21,14 +21,13 @@ args = parser.parse_args()
 
 def plotProb(lats, lons, data, title):
     from mpl_toolkits.basemap import Basemap
-
     # plot the data
     f = pylab.figure()
-    p = pylab.pcolor(lons, lats, data, vmin=0, vmax=1)
+    p = pylab.pcolor(lons, lats, data, vmin=0, vmax=1, cmap='YlGnBu')
     pylab.colorbar(p)
     # add the basemap
     mp = Basemap(llcrnrlon=160, urcrnrlon=185, llcrnrlat=-49, urcrnrlat=-30, resolution='h')
-    mp.drawcoastlines(color='w')
+    mp.drawcoastlines(color='orange')
     f.savefig('prob_precip_pe{}.png'.format(pe))
 
 nprocs = MPI.COMM_WORLD.Get_size()
@@ -58,10 +57,10 @@ f.close()
 
 # create averager
 op = pnumpy.StencilOperator(dc, periodic=(False, False))
-op.addStencilBranch((+1,  0), 1.0/4.0)
-op.addStencilBranch(( 0, +1), 1.0/4.0)
-op.addStencilBranch((-1,  0), 1.0/4.0)
-op.addStencilBranch(( 0, -1), 1.0/4.0)
+op.addStencilBranch((+1,  0), 0.25)
+op.addStencilBranch(( 0, +1), 0.25)
+op.addStencilBranch((-1,  0), 0.25)
+op.addStencilBranch(( 0, -1), 0.25)
 
 """
 if args.plot:
@@ -94,5 +93,5 @@ if pe == 0:
 
 # plot data
 if args.plot: 
-    plotProb(lats, lons, out, 'prob precip')
+    plotProb(lats, lons, out, 'prob precip niter={}'.format(args.niter))
 
