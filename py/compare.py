@@ -51,8 +51,15 @@ def trevor(inputField, stencilLen=3):
 	return output
 
 inputField = numpy.zeros((n, n), numpy.float64)
-inputField[n//2-1:n//2+1, n//2-1:n//2+1] = 1.0
 
+inputField[n//4-1:n//4+1, n//4-1:n//4+1] = 1.0
+
+inputField[3*n//4, 3*n//4] = 1.0
+
+inputField[n//4-1:n//4+1, 3*n//4] = 1.0
+
+inputField[3*n//4-1:3*n//4+1, n//4] = 1.0
+inputField[3*n//4, n//4+1] = 1.0
 
 from matplotlib import pyplot
 
@@ -67,10 +74,10 @@ pyplot.title("Trevor's method")
 jac = inputField.copy()
 for i in range(niter):
 	f2, a2 = pyplot.subplots()
-	p2 = pyplot.pcolor(jac, cmap='YlOrBr', vmin=0, vmax=1)
-	pyplot.title("Jacobi's method")
+	p2 = pyplot.pcolor(jac, cmap='YlGnBu', vmin=0, vmax=1)
+	pyplot.title("Jacobi's method iter = {}".format(i))
 	pyplot.colorbar(p2)
-	jac = jacobi2(jac)
+	jac = jacobi(jac)
 
 
 pyplot.show()
